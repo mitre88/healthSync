@@ -9,12 +9,17 @@ class NotificationService: NSObject, ObservableObject {
     override init() {
         super.init()
         UNUserNotificationCenter.current().delegate = self
+        Task {
+            await refreshAuthorizationStatus()
+            await refreshPendingNotifications()
+        }
     }
     
     func requestAuthorization() async -> Bool {
         do {
             let options: UNAuthorizationOptions = [.alert, .badge, .sound]
-            isAuthorized = try await UNUserNotificationCenter.current().requestAuthorization(options: options)
+            _ = try await UNUserNotificationCenter.current().requestAuthorization(options: options)
+            await refreshAuthorizationStatus()
             return isAuthorized
         } catch {
             print("Error requesting notification authorization: \(error)")
@@ -22,7 +27,10 @@ class NotificationService: NSObject, ObservableObject {
         }
     }
     
-    func scheduleMedicationReminder(for medication: Medication) async {
+    func scheduleMedicationReminder(
+        for medication: Medication,
+        reminderMinutesBefore: Int = 0
+    ) async {
         guard isAuthorized else { return }
         
         await cancelMedicationReminders(for: medication)
@@ -51,6 +59,33 @@ class NotificationService: NSObject, ObservableObject {
             } catch {
                 print("Error scheduling notification: \(error)")
             }
+            
+            if reminderMinutesBefore > 0,
+               let reminderDate = calendar.date(byAdding: .minute, value: -reminderMinutesBefore, to: time) {
+                let reminderComponents = calendar.dateComponents([.hour, .minute], from: reminderDate)
+                let reminderContent = UNMutableNotificationContent()
+                reminderContent.title = "HealthSync - Proximo medicamento"
+                reminderContent.body = "En \(reminderMinutesBefore) min: \(medication.name) - \(medication.dosage)"
+                reminderContent.sound = .default
+                reminderContent.userInfo = ["medicationId": medication.id.uuidString, "timeIndex": index, "kind": "advance"]
+                
+                let reminderTrigger = UNCalendarNotificationTrigger(
+                    dateMatching: reminderComponents,
+                    repeats: true
+                )
+                
+                let reminderRequest = UNNotificationRequest(
+                    identifier: "\(medication.id.uuidString)-pre-\(index)",
+                    content: reminderContent,
+                    trigger: reminderTrigger
+                )
+                
+                do {
+                    try await UNUserNotificationCenter.current().add(reminderRequest)
+                } catch {
+                    print("Error scheduling pre-reminder: \(error)")
+                }
+            }
         }
         
         await refreshPendingNotifications()
@@ -59,7 +94,10 @@ class NotificationService: NSObject, ObservableObject {
     func cancelMedicationReminders(for medication: Medication) async {
         for index in medication.times.indices {
             UNUserNotificationCenter.current().removePendingNotificationRequests(
-                withIdentifiers: ["\(medication.id.uuidString)-\(index)"]
+                withIdentifiers: [
+                    "\(medication.id.uuidString)-\(index)",
+                    "\(medication.id.uuidString)-pre-\(index)"
+                ]
             )
         }
         await refreshPendingNotifications()
@@ -72,6 +110,13 @@ class NotificationService: NSObject, ObservableObject {
     
     func refreshPendingNotifications() async {
         pendingNotifications = await UNUserNotificationCenter.current().pendingNotificationRequests()
+    }
+    
+    func refreshAuthorizationStatus() async {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        isAuthorized = settings.authorizationStatus == .authorized
+            || settings.authorizationStatus == .provisional
+            || settings.authorizationStatus == .ephemeral
     }
     
     func getNotificationSettings() async -> UNNotificationSettings {

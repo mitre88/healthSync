@@ -9,22 +9,30 @@ class MedicationStore: ObservableObject {
     private var modelContext: ModelContext?
     
     init() {
-        userProfile = UserProfile(name: "", age: 0, allergies: "", notificationsEnabled: true)
-        loadSampleData()
+        userProfile = UserProfile(
+            name: "",
+            age: 0,
+            allergies: "",
+            notificationsEnabled: true,
+            reminderMinutesBefore: 15
+        )
     }
     
     func setModelContext(_ context: ModelContext) {
-        self.modelContext = context
+        modelContext = context
         fetchMedications()
+        fetchOrCreateUserProfile()
     }
     
     func fetchMedications() {
         guard let context = modelContext else { return }
         
-        let descriptor = FetchDescriptor<Medication>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)])
+        let descriptor = FetchDescriptor<Medication>()
         
         do {
-            medications = try context.fetch(descriptor)
+            medications = try context
+                .fetch(descriptor)
+                .sorted { $0.createdAt > $1.createdAt }
         } catch {
             print("Error fetching medications: \(error)")
         }
@@ -78,10 +86,40 @@ class MedicationStore: ObservableObject {
         updateMedication(medication)
     }
     
+    func updateUserProfile(
+        name: String,
+        age: Int,
+        allergies: String,
+        notificationsEnabled: Bool,
+        reminderMinutesBefore: Int
+    ) {
+        let profile = userProfile ?? UserProfile()
+        profile.name = name
+        profile.age = max(age, 0)
+        profile.allergies = allergies
+        profile.notificationsEnabled = notificationsEnabled
+        profile.reminderMinutesBefore = reminderMinutesBefore
+        userProfile = profile
+        
+        guard let context = modelContext else { return }
+        
+        if profile.modelContext == nil {
+            context.insert(profile)
+        }
+        
+        do {
+            try context.save()
+        } catch {
+            print("Error saving user profile: \(error)")
+        }
+    }
+    
     func getTodayMedications() -> [Medication] {
         let calendar = Calendar.current
-        return medications.filter { med in
-            med.isActive && (med.endDate == nil || calendar.compare(Date(), to: med.endDate!, toGranularity: .day) != .orderedDescending)
+        return medications.filter { medication in
+            guard medication.isActive else { return false }
+            guard let endDate = medication.endDate else { return true }
+            return calendar.compare(Date(), to: endDate, toGranularity: .day) != .orderedDescending
         }
     }
     
@@ -101,44 +139,24 @@ class MedicationStore: ObservableObject {
         medications.filter { $0.isActive }.count
     }
     
-    private func loadSampleData() {
-        let calendar = Calendar.current
+    private func fetchOrCreateUserProfile() {
+        guard let context = modelContext else { return }
         
-        let med1 = Medication(
-            name: "Paracetamol",
-            dosage: "500mg",
-            frequency: "Cada 8 horas",
-            instructions: "Tomar con alimentos",
-            times: [
-                calendar.date(bySettingHour: 8, minute: 0, second: 0, of: Date())!,
-                calendar.date(bySettingHour: 16, minute: 0, second: 0, of: Date())!,
-                calendar.date(bySettingHour: 0, minute: 0, second: 0, of: Date())!
-            ],
-            doctorName: "Dr. García"
-        )
+        var descriptor = FetchDescriptor<UserProfile>()
+        descriptor.fetchLimit = 1
         
-        let med2 = Medication(
-            name: "Omeprazol",
-            dosage: "20mg",
-            frequency: "1 vez al día",
-            instructions: "Tomar en ayunas, 30 min antes del desayuno",
-            times: [calendar.date(bySettingHour: 7, minute: 0, second: 0, of: Date())!],
-            doctorName: "Dra. Martínez"
-        )
-        
-        let med3 = Medication(
-            name: "Amoxicilina",
-            dosage: "500mg",
-            frequency: "Cada 12 horas",
-            instructions: "Completar tratamiento de 7 días",
-            times: [
-                calendar.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!,
-                calendar.date(bySettingHour: 21, minute: 0, second: 0, of: Date())!
-            ],
-            endDate: calendar.date(byAdding: .day, value: 7, to: Date()),
-            doctorName: "Dr. López"
-        )
-        
-        medications = [med1, med2, med3]
+        do {
+            if let existingProfile = try context.fetch(descriptor).first {
+                userProfile = existingProfile
+                return
+            }
+            
+            let profile = userProfile ?? UserProfile()
+            context.insert(profile)
+            try context.save()
+            userProfile = profile
+        } catch {
+            print("Error fetching user profile: \(error)")
+        }
     }
 }

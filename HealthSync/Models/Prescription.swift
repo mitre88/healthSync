@@ -1,5 +1,19 @@
 import Foundation
 
+enum ExtractionSource: String {
+    case appleIntelligence
+    case heuristic
+    
+    var displayName: String {
+        switch self {
+        case .appleIntelligence:
+            return "Apple Intelligence"
+        case .heuristic:
+            return "Análisis local"
+        }
+    }
+}
+
 struct Prescription: Identifiable, Codable {
     let id: UUID
     let doctorName: String
@@ -62,4 +76,5 @@ struct ScanResult {
     let medications: [ExtractedMedication]
     let doctorName: String?
     let prescriptionDate: Date?
+    let extractionSource: ExtractionSource
 }

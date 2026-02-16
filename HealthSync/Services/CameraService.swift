@@ -1,7 +1,6 @@
 import SwiftUI
 import Vision
 import VisionKit
-import CoreImage
 import PhotosUI
 
 @MainActor
@@ -9,6 +8,8 @@ class CameraService: ObservableObject {
     @Published var selectedImage: UIImage?
     @Published var isProcessing = false
     @Published var errorMessage: String?
+    
+    private let prescriptionIntelligenceService = PrescriptionIntelligenceService()
     
     func processImage(_ image: UIImage) async -> ScanResult? {
         isProcessing = true
@@ -28,14 +29,16 @@ class CameraService: ObservableObject {
             return nil
         }
         
-        let extractedData = extractMedicationData(from: recognizedText)
+        let extractedData = await prescriptionIntelligenceService.extract(from: recognizedText)
+        let confidence = extractedData.source == .appleIntelligence ? 0.95 : 0.8
         
         return ScanResult(
             recognizedText: recognizedText,
-            confidence: 0.85,
+            confidence: confidence,
             medications: extractedData.medications,
             doctorName: extractedData.doctorName,
-            prescriptionDate: extractedData.prescriptionDate
+            prescriptionDate: extractedData.prescriptionDate,
+            extractionSource: extractedData.source
         )
     }
     
@@ -66,121 +69,6 @@ class CameraService: ObservableObject {
                 continuation.resume(returning: "")
             }
         }
-    }
-    
-    private func extractMedicationData(from text: String) -> (medications: [ExtractedMedication], doctorName: String?, prescriptionDate: Date?) {
-        let lines = text.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-        
-        var medications: [ExtractedMedication] = []
-        var doctorName: String?
-        var prescriptionDate: Date?
-        
-        let doctorPatterns = ["Dr\\.", "Dra\\.", "Doctor", "Doctora", "Médico", "Dr ", "Dra "]
-        let datePatterns = ["\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4}", "\\d{1,2}\\s+de\\s+\\w+\\s+de\\s+\\d{4}"]
-        
-        for line in lines {
-            for pattern in doctorPatterns {
-                if line.range(of: pattern, options: .regularExpression) != nil {
-                    doctorName = line
-                    break
-                }
-            }
-            
-            for pattern in datePatterns {
-                if let range = line.range(of: pattern, options: .regularExpression),
-                   doctorName == nil || !line.contains(doctorName ?? "") {
-                    let dateStr = String(line[range])
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "dd/MM/yyyy"
-                    if let date = formatter.date(from: dateStr) {
-                        prescriptionDate = date
-                    } else {
-                        formatter.dateFormat = "dd-MM-yyyy"
-                        prescriptionDate = formatter.date(from: dateStr)
-                    }
-                }
-            }
-        }
-        
-        let medicationKeywords = ["mg", "ml", "tablet", "tableta", "cápsula", "capsula", "jarabe", "gotas", "inyectable", "comprimido", "cada", "horas", "días", "vez", "veces", "oral", "tomar"]
-        
-        var currentMedication: String?
-        var currentDosage: String = ""
-        var currentFrequency: String = ""
-        var currentInstructions: String = ""
-        
-        for line in lines {
-            let lowercased = line.lowercased()
-            let hasMedicationKeyword = medicationKeywords.contains { lowercased.contains($0) }
-            
-            if hasMedicationKeyword {
-                if currentMedication != nil && !currentDosage.isEmpty {
-                    medications.append(ExtractedMedication(
-                        name: currentMedication ?? "Medicamento",
-                        dosage: currentDosage,
-                        frequency: currentFrequency,
-                        instructions: currentInstructions.isEmpty ? nil : currentInstructions
-                    ))
-                    currentDosage = ""
-                    currentFrequency = ""
-                    currentInstructions = ""
-                }
-                
-                currentMedication = line
-                
-                if let mgRange = lowercased.range(of: #"\d+\s*mg"#, options: .regularExpression) {
-                    currentDosage = String(lowercased[mgRange])
-                } else if let mlRange = lowercased.range(of: #"\d+\s*ml"#, options: .regularExpression) {
-                    currentDosage = String(lowercased[mlRange])
-                }
-                
-                if lowercased.contains("cada") {
-                    if let freqRange = lowercased.range(of: #"cada\s+\d+\s*(horas?|días?)"#, options: .regularExpression) {
-                        currentFrequency = String(lowercased[freqRange])
-                    }
-                }
-                
-                if lowercased.contains("vez") || lowercased.contains("veces") {
-                    if lowercased.contains("1 vez") { currentFrequency = "1 vez al día" }
-                    else if lowercased.contains("2 veces") { currentFrequency = "2 veces al día" }
-                    else if lowercased.contains("3 veces") { currentFrequency = "3 veces al día" }
-                }
-                
-            } else if currentMedication != nil {
-                currentInstructions += (currentInstructions.isEmpty ? "" : " ") + line
-            }
-        }
-        
-        if let med = currentMedication, !med.isEmpty {
-            medications.append(ExtractedMedication(
-                name: med,
-                dosage: currentDosage.isEmpty ? "Según indicación" : currentDosage,
-                frequency: currentFrequency.isEmpty ? "Según indicación médica" : currentFrequency,
-                instructions: currentInstructions.isEmpty ? nil : currentInstructions
-            ))
-        }
-        
-        if medications.isEmpty {
-            let words = text.components(separatedBy: .whitespacesAndNewlines)
-            var tempMed: String?
-            
-            for word in words {
-                if word.range(of: #"\d+\s*(mg|ml)"#, options: .regularExpression) != nil {
-                    if let med = tempMed {
-                        medications.append(ExtractedMedication(
-                            name: med,
-                            dosage: word,
-                            frequency: "Según indicación médica"
-                        ))
-                    }
-                    tempMed = nil
-                } else if word.count > 3 && word.first?.isUppercase == true {
-                    tempMed = word
-                }
-            }
-        }
-        
-        return (medications, doctorName, prescriptionDate)
     }
 }
 
@@ -252,10 +140,10 @@ struct PhotoPicker: UIViewControllerRepresentable {
             
             guard let result = results.first else { return }
             
-            result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] object, error in
+            result.itemProvider.loadObject(ofClass: UIImage.self) { [parent] object, _ in
                 if let image = object as? UIImage {
                     DispatchQueue.main.async {
-                        self?.parent.image = image
+                        parent.image = image
                     }
                 }
             }
