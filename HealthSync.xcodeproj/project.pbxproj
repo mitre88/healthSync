@@ -1,0 +1,393 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 63;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1BCE687E026DB31B8C68E237 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0856C60FC0AEC904BAF152E3 /* ContentView.swift */; };
+		1CDE6E5A8A63571695E0C259 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD08B4ED03E5D3F91BD1337C /* HomeView.swift */; };
+		39AE69BE435F0B92A98B7A6C /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E07B735B27C07B65D4C5D68F /* NotificationService.swift */; };
+		4BD2CFD50D6DF384E3B55835 /* Medication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A157759EA0BA83E1B24389 /* Medication.swift */; };
+		59784596D10F9E4D5F8A0E4D /* Prescription.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B921A0923EF87E4AF5AAF95 /* Prescription.swift */; };
+		5C2B6A39BCE5D153626F6E2B /* HealthSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5213A79BCA3BDE3936043E71 /* HealthSyncApp.swift */; };
+		5C34AEF6C2649DD3C6A1AC13 /* ScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E65BBB48DD82B0CF4B0652D /* ScheduleView.swift */; };
+		60E0E55B476C891293367148 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DAFA7F14A31207ED589CADCA /* Assets.xcassets */; };
+		780BA37F4236DDF62AD5EB4D /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 150B0A144F78FE2E4B781264 /* ScanView.swift */; };
+		7B175778D13631D459016792 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC23E911A00D6A121F1D48F9 /* ProfileView.swift */; };
+		817A1FC615D11ED5C503EDA2 /* MedicationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8ABEC951F7DF901B7DF4028 /* MedicationStore.swift */; };
+		CB21C0F35387B2F0A0820F31 /* MedicationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C51A4484CA9ADDD6DA1F5D /* MedicationsView.swift */; };
+		DB1E588AA3124226DE4182D4 /* CameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EDA81228304F4069F78781A /* CameraService.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0856C60FC0AEC904BAF152E3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		150B0A144F78FE2E4B781264 /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanView.swift; sourceTree = "<group>"; };
+		1D343810F4B4383E36DAE2F1 /* HealthSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HealthSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1E65BBB48DD82B0CF4B0652D /* ScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleView.swift; sourceTree = "<group>"; };
+		2B921A0923EF87E4AF5AAF95 /* Prescription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prescription.swift; sourceTree = "<group>"; };
+		2EDA81228304F4069F78781A /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
+		5213A79BCA3BDE3936043E71 /* HealthSyncApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthSyncApp.swift; sourceTree = "<group>"; };
+		54C51A4484CA9ADDD6DA1F5D /* MedicationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationsView.swift; sourceTree = "<group>"; };
+		60A157759EA0BA83E1B24389 /* Medication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Medication.swift; sourceTree = "<group>"; };
+		77DC9E8F7853D4644F9B4F0E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		AD08B4ED03E5D3F91BD1337C /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		BC23E911A00D6A121F1D48F9 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		DAFA7F14A31207ED589CADCA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E07B735B27C07B65D4C5D68F /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		E8ABEC951F7DF901B7DF4028 /* MedicationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationStore.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		04FE962AFCDCE2EB2C2661AA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1D343810F4B4383E36DAE2F1 /* HealthSync.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1618E30B30C691EB111703F1 /* HealthSync */ = {
+			isa = PBXGroup;
+			children = (
+				372A84D72ECEB15019BC08B3 /* Models */,
+				7A4D923A51045AB5165B6B10 /* Resources */,
+				C89201485CA09B7DAAF6BA19 /* Services */,
+				29CA5448C1EE2E1164C71F47 /* Views */,
+				DAFA7F14A31207ED589CADCA /* Assets.xcassets */,
+				0856C60FC0AEC904BAF152E3 /* ContentView.swift */,
+				5213A79BCA3BDE3936043E71 /* HealthSyncApp.swift */,
+				77DC9E8F7853D4644F9B4F0E /* Info.plist */,
+			);
+			path = HealthSync;
+			sourceTree = "<group>";
+		};
+		28FBFFD0D3C692B467C9E997 = {
+			isa = PBXGroup;
+			children = (
+				1618E30B30C691EB111703F1 /* HealthSync */,
+				04FE962AFCDCE2EB2C2661AA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		29CA5448C1EE2E1164C71F47 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AD08B4ED03E5D3F91BD1337C /* HomeView.swift */,
+				54C51A4484CA9ADDD6DA1F5D /* MedicationsView.swift */,
+				BC23E911A00D6A121F1D48F9 /* ProfileView.swift */,
+				150B0A144F78FE2E4B781264 /* ScanView.swift */,
+				1E65BBB48DD82B0CF4B0652D /* ScheduleView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		372A84D72ECEB15019BC08B3 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				60A157759EA0BA83E1B24389 /* Medication.swift */,
+				2B921A0923EF87E4AF5AAF95 /* Prescription.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		7A4D923A51045AB5165B6B10 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		C89201485CA09B7DAAF6BA19 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				2EDA81228304F4069F78781A /* CameraService.swift */,
+				E8ABEC951F7DF901B7DF4028 /* MedicationStore.swift */,
+				E07B735B27C07B65D4C5D68F /* NotificationService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		892A921C4AE312FBC7AB053B /* HealthSync */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD425CCA1BA42F6C69E6729D /* Build configuration list for PBXNativeTarget "HealthSync" */;
+			buildPhases = (
+				810254FFA098B3E2D484392A /* Sources */,
+				9AB4843F388D5127C037E3D8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HealthSync;
+			packageProductDependencies = (
+			);
+			productName = HealthSync;
+			productReference = 1D343810F4B4383E36DAE2F1 /* HealthSync.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F4549D80C7EEB3189A9CF84C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					892A921C4AE312FBC7AB053B = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 57BE2FE37BCFCC442737DB1B /* Build configuration list for PBXProject "HealthSync" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 28FBFFD0D3C692B467C9E997;
+			minimizedProjectReferenceProxies = 1;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				892A921C4AE312FBC7AB053B /* HealthSync */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9AB4843F388D5127C037E3D8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				60E0E55B476C891293367148 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		810254FFA098B3E2D484392A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DB1E588AA3124226DE4182D4 /* CameraService.swift in Sources */,
+				1BCE687E026DB31B8C68E237 /* ContentView.swift in Sources */,
+				5C2B6A39BCE5D153626F6E2B /* HealthSyncApp.swift in Sources */,
+				1CDE6E5A8A63571695E0C259 /* HomeView.swift in Sources */,
+				4BD2CFD50D6DF384E3B55835 /* Medication.swift in Sources */,
+				817A1FC615D11ED5C503EDA2 /* MedicationStore.swift in Sources */,
+				CB21C0F35387B2F0A0820F31 /* MedicationsView.swift in Sources */,
+				39AE69BE435F0B92A98B7A6C /* NotificationService.swift in Sources */,
+				59784596D10F9E4D5F8A0E4D /* Prescription.swift in Sources */,
+				7B175778D13631D459016792 /* ProfileView.swift in Sources */,
+				780BA37F4236DDF62AD5EB4D /* ScanView.swift in Sources */,
+				5C34AEF6C2649DD3C6A1AC13 /* ScheduleView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		5E7BEC9CDF6A3187C96D8D09 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8UTGJ9D5B6;
+				INFOPLIST_FILE = HealthSync/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.healthsync.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		74A84F99F88A12F2F91CC76B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_LANGUAGE = es;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = HealthSync/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = HealthSync;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		917D6698AB977A73A9885894 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8UTGJ9D5B6;
+				INFOPLIST_FILE = HealthSync/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.healthsync.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C11839D830848BE4CE40A20B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_LANGUAGE = es;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = HealthSync/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = HealthSync;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		57BE2FE37BCFCC442737DB1B /* Build configuration list for PBXProject "HealthSync" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				74A84F99F88A12F2F91CC76B /* Debug */,
+				C11839D830848BE4CE40A20B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CD425CCA1BA42F6C69E6729D /* Build configuration list for PBXNativeTarget "HealthSync" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				917D6698AB977A73A9885894 /* Debug */,
+				5E7BEC9CDF6A3187C96D8D09 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F4549D80C7EEB3189A9CF84C /* Project object */;
+}
