@@ -9,6 +9,7 @@ struct ProfileView: View {
     @State private var allergies = ""
     @State private var notificationsEnabled = true
     @State private var reminderMinutes = 15
+    @State private var showSavedProfile = false
     
     var body: some View {
         NavigationStack {
@@ -47,6 +48,8 @@ struct ProfileView: View {
                                 Task {
                                     _ = await notificationService.requestAuthorization()
                                 }
+                            } else {
+                                notificationService.cancelAllReminders()
                             }
                         }
                     
@@ -135,8 +138,25 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Perfil")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Guardar") {
+                        saveProfile()
+                    }
+                }
+            }
             .onAppear {
                 loadProfile()
+                Task {
+                    await notificationService.refreshAuthorizationStatus()
+                    await notificationService.refreshPendingNotifications()
+                }
+            }
+            .onDisappear {
+                saveProfile(showConfirmation: false)
+            }
+            .alert("Perfil guardado", isPresented: $showSavedProfile) {
+                Button("OK", role: .cancel) { }
             }
         }
     }
@@ -148,6 +168,37 @@ struct ProfileView: View {
             allergies = profile.allergies
             notificationsEnabled = profile.notificationsEnabled
             reminderMinutes = profile.reminderMinutesBefore
+        }
+    }
+    
+    private func saveProfile(showConfirmation: Bool = true) {
+        let parsedAge = Int(age) ?? 0
+        
+        medicationStore.updateUserProfile(
+            name: name,
+            age: parsedAge,
+            allergies: allergies,
+            notificationsEnabled: notificationsEnabled,
+            reminderMinutesBefore: reminderMinutes
+        )
+        
+        Task {
+            if notificationsEnabled {
+                if await notificationService.requestAuthorization() {
+                    for medication in medicationStore.medications where medication.isActive {
+                        await notificationService.scheduleMedicationReminder(
+                            for: medication,
+                            reminderMinutesBefore: reminderMinutes
+                        )
+                    }
+                }
+            } else {
+                notificationService.cancelAllReminders()
+            }
+        }
+        
+        if showConfirmation {
+            showSavedProfile = true
         }
     }
 }

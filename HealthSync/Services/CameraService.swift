@@ -7,7 +7,6 @@ import Foundation
 
 // MARK: - Foundation Models Integration (iOS 26)
 
-@available(iOS 26.0, *)
 @MainActor
 class CameraService: ObservableObject {
     @Published var selectedImage: UIImage?
@@ -24,6 +23,7 @@ class CameraService: ObservableObject {
     }
     
     private let drugInteractionChecker = DrugInteractionChecker()
+    private let prescriptionIntelligenceService = PrescriptionIntelligenceService()
     
     // MARK: - Main Processing
     
@@ -51,9 +51,9 @@ class CameraService: ObservableObject {
             return nil
         }
         
-        // Step 2: Extract with Foundation Models (if available) or fallback to regex
+        // Step 2: Extract with PrescriptionIntelligenceService (Foundation Models + regex fallback)
         processingStage = .analyzing
-        let extractedData = await extractMedicationDataIntelligently(from: recognizedText)
+        let extractedData = await prescriptionIntelligenceService.extract(from: recognizedText)
         
         guard !extractedData.medications.isEmpty else {
             errorMessage = "No se pudieron identificar medicamentos. Intenta con una foto más clara de la receta."
@@ -64,13 +64,16 @@ class CameraService: ObservableObject {
         processingStage = .validating
         let interactions = drugInteractionChecker.checkInteractions(extractedData.medications)
         
+        let confidence = extractedData.source == .appleIntelligence ? 0.95 : calculateConfidence(for: extractedData.medications)
+        
         return ScanResult(
             recognizedText: recognizedText,
-            confidence: calculateConfidence(for: extractedData.medications),
+            confidence: confidence,
             medications: extractedData.medications,
             doctorName: extractedData.doctorName,
             prescriptionDate: extractedData.prescriptionDate,
-            drugInteractions: interactions
+            drugInteractions: interactions,
+            extractionSource: extractedData.source
         )
     }
     
@@ -108,244 +111,7 @@ class CameraService: ObservableObject {
         }
     }
     
-    // MARK: - Intelligent Extraction
-    
-    private func extractMedicationDataIntelligently(from text: String) async -> (medications: [ExtractedMedication], doctorName: String?, prescriptionDate: Date?) {
-        
-        // Try Foundation Models first (iOS 26+)
-        if #available(iOS 26.0, *) {
-            if let result = await extractWithFoundationModel(text: text) {
-                return result
-            }
-        }
-        
-        // Fallback to enhanced regex
-        return extractMedicationDataWithRegex(from: text)
-    }
-    
-    @available(iOS 26.0, *)
-    private func extractWithFoundationModel(text: String) async -> (medications: [ExtractedMedication], doctorName: String?, prescriptionDate: Date?)? {
-        // This would use the new Apple Intelligence Foundation Models API
-        // For now, we simulate the structure
-        
-        let prompt = """
-        Extrae la información médica de esta receta en formato JSON:
-        
-        Texto de la receta:
-        \(text)
-        
-        Devuelve EXACTAMENTE este formato:
-        {
-            "doctorName": "Nombre del doctor o vacío",
-            "prescriptionDate": "Fecha en formato DD/MM/YYYY o vacío",
-            "medications": [
-                {
-                    "name": "Nombre del medicamento",
-                    "dosage": "Dosis (ej: 20mg, 10ml)",
-                    "frequency": "Frecuencia (ej: cada 8 horas, 2 veces al día)",
-                    "instructions": "Instrucciones adicionales o vacío"
-                }
-            ]
-        }
-        """
-        
-        // Note: Real implementation would use the Foundation Models API
-        // This is a placeholder for the actual Apple Intelligence integration
-        return nil
-    }
-    
-    // MARK: - Enhanced Regex Extraction
-    
-    private func extractMedicationDataWithRegex(from text: String) -> (medications: [ExtractedMedication], doctorName: String?, prescriptionDate: Date?) {
-        let lines = text.components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-        
-        var medications: [ExtractedMedication] = []
-        var doctorName: String?
-        var prescriptionDate: Date?
-        
-        // Enhanced patterns for multiple languages
-        let doctorPatterns = [
-            "(?i)(?:Dr\\.|Dra\\.|Doctor|Doctora|Médico|Medico|Dr|Dra)\\s*[.:]?\\s*([^\\n]+)",
-            "(?i)Médico\\s*tratante\\s*[:.]?\\s*([^\\n]+)",
-            "(?i)Prescribe\\s*[:.]?\\s*([^\\n]+)"
-        ]
-        
-        let datePatterns = [
-            "(\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4})",
-            "(\\d{1,2}\\s+de\\s+(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\\s+de\\s+\\d{4})",
-            "((?:January|February|March|April|May|June|July|August|September|October|November|December)\\s+\\d{1,2},?\\s+\\d{4})"
-        ]
-        
-        // Extract doctor name
-        for line in lines {
-            for pattern in doctorPatterns {
-                if let regex = try? NSRegularExpression(pattern: pattern, options: []),
-                   let match = regex.firstMatch(in: line, options: [], range: NSRange(location: 0, length: line.utf16.count)) {
-                    if let range = Range(match.range(at: 1), in: line) {
-                        doctorName = String(line[range]).trimmingCharacters(in: .whitespaces)
-                        break
-                    }
-                }
-            }
-        }
-        
-        // Extract date
-        let fullText = lines.joined(separator: " ")
-        for pattern in datePatterns {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: []),
-               let match = regex.firstMatch(in: fullText, options: [], range: NSRange(location: 0, length: fullText.utf16.count)),
-               let range = Range(match.range(at: 1), in: fullText) {
-                let dateStr = String(fullText[range])
-                prescriptionDate = parseDate(dateStr)
-                if prescriptionDate != nil { break }
-            }
-        }
-        
-        // Extract medications with enhanced logic
-        medications = extractMedicationsEnhanced(from: lines)
-        
-        return (medications, doctorName, prescriptionDate)
-    }
-    
-    private func extractMedicationsEnhanced(from lines: [String]) -> [ExtractedMedication] {
-        var medications: [ExtractedMedication] = []
-        
-        // Patterns for dosage
-        let dosagePattern = #"(?i)(\d+\s*(?:mg|ml|mcg|UI|g|gr|gramos?|unidades?))"#
-        
-        // Patterns for frequency (multilingual)
-        let frequencyPatterns = [
-            "(?i)cada\\s+(\\d+)\\s*horas?",
-            "(?i)(\\d+)\\s*veces\\s+(?:al|por)\\s*día",
-            "(?i)once\\s+daily",
-            "(?i)twice\\s+daily",
-            "(?i)three\\s+times\\s+daily",
-            "(?i)every\\s+(\\d+)\\s*hours?",
-            "(?i)1\\s*(?:vez|time)",
-            "(?i)2\\s*(?:veces|times)",
-            "(?i)3\\s*(?:veces|times)"
-        ]
-        
-        var currentMed: ExtractedMedication?
-        var pendingInstructions: [String] = []
-        
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            guard !trimmed.isEmpty else { continue }
-            
-            // Check if line contains dosage (indicator of medication)
-            if let dosageRegex = try? NSRegularExpression(pattern: dosagePattern, options: []),
-               let dosageMatch = dosageRegex.firstMatch(in: trimmed, options: [], range: NSRange(location: 0, length: trimmed.utf16.count)),
-               let dosageRange = Range(dosageMatch.range(at: 1), in: trimmed) {
-                
-                // Save previous medication if exists
-                if var med = currentMed {
-                    med.instructions = pendingInstructions.joined(separator: " ").nilIfEmpty
-                    medications.append(med)
-                    pendingInstructions = []
-                }
-                
-                let dosage = String(trimmed[dosageRange])
-                let name = extractMedicationName(from: trimmed, excluding: dosage)
-                let frequency = extractFrequency(from: trimmed, using: frequencyPatterns)
-                
-                currentMed = ExtractedMedication(
-                    name: name,
-                    dosage: dosage,
-                    frequency: frequency.isEmpty ? "Según indicación médica" : frequency,
-                    instructions: nil
-                )
-            } else if currentMed != nil {
-                // This might be instructions for current medication
-                if !isHeaderLine(trimmed) {
-                    pendingInstructions.append(trimmed)
-                }
-            }
-        }
-        
-        // Don't forget the last medication
-        if var med = currentMed {
-            med.instructions = pendingInstructions.joined(separator: " ").nilIfEmpty
-            medications.append(med)
-        }
-        
-        return medications
-    }
-    
-    private func extractMedicationName(from line: String, excluding dosage: String) -> String {
-        // Remove dosage from line to get name
-        var name = line.replacingOccurrences(of: dosage, with: "", options: .caseInsensitive)
-        
-        // Remove common words that aren't part of name
-        let wordsToRemove = ["tomar", "tom", "take", "oral", "por", "vía", "via", "cada", "veces", "al día", "daily"]
-        for word in wordsToRemove {
-            name = name.replacingOccurrences(of: word, with: "", options: .caseInsensitive)
-        }
-        
-        // Clean up
-        name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        name = name.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
-        
-        // Capitalize first letter of each word
-        name = name.components(separatedBy: " ")
-            .map { $0.capitalized }
-            .joined(separator: " ")
-        
-        return name.isEmpty ? "Medicamento" : name
-    }
-    
-    private func extractFrequency(from line: String, using patterns: [String]) -> String {
-        for pattern in patterns {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: []),
-               let match = regex.firstMatch(in: line, options: [], range: NSRange(location: 0, length: line.utf16.count)) {
-                if let range = Range(match.range(at: 0), in: line) {
-                    return String(line[range]).lowercased()
-                }
-            }
-        }
-        return ""
-    }
-    
-    private func isHeaderLine(_ line: String) -> Bool {
-        let headerWords = ["receta", "prescripción", "prescripcion", "indicaciones", 
-                          "nombre", "paciente", "doctor", "fecha", "rx", "medicamentos"]
-        return headerWords.contains { line.lowercased().contains($0) }
-    }
-    
-    private func parseDate(_ dateString: String) -> Date? {
-        let formatters = [
-            "dd/MM/yyyy",
-            "dd-MM-yyyy",
-            "dd/MM/yy",
-            "MM/dd/yyyy",
-            "yyyy-MM-dd",
-            "dd MMMM yyyy",
-            "dd 'de' MMMM 'de' yyyy"
-        ]
-        
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "es_ES")
-        
-        for format in formatters {
-            formatter.dateFormat = format
-            if let date = formatter.date(from: dateString) {
-                return date
-            }
-        }
-        
-        // Try English locale
-        formatter.locale = Locale(identifier: "en_US")
-        for format in formatters {
-            formatter.dateFormat = format
-            if let date = formatter.date(from: dateString) {
-                return date
-            }
-        }
-        
-        return nil
-    }
+    // MARK: - Helper Methods
     
     private func calculateConfidence(for medications: [ExtractedMedication]) -> Double {
         guard !medications.isEmpty else { return 0.0 }
@@ -364,10 +130,83 @@ class CameraService: ObservableObject {
     }
 }
 
-// MARK: - Helper Extensions
+// MARK: - Image Picker
 
-extension String {
-    var nilIfEmpty: String? {
-        return self.trimmingCharacters(in: .whitespaces).isEmpty ? nil : self
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var image: UIImage?
+    @Binding var sourceType: UIImagePickerController.SourceType
+    @Environment(\.presentationMode) var presentationMode
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = sourceType
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.image = image
+            }
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+    }
+}
+
+struct PhotoPicker: UIViewControllerRepresentable {
+    @Binding var image: UIImage?
+    @Environment(\.presentationMode) var presentationMode
+    
+    func makeUIViewController(context: Context) -> PHPickerViewController {
+        var configuration = PHPickerConfiguration()
+        configuration.filter = .images
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        let parent: PhotoPicker
+        
+        init(_ parent: PhotoPicker) {
+            self.parent = parent
+        }
+        
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            parent.presentationMode.wrappedValue.dismiss()
+            
+            guard let result = results.first else { return }
+            
+            result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] object, error in
+                if let image = object as? UIImage {
+                    DispatchQueue.main.async {
+                        self?.parent.image = image
+                    }
+                }
+            }
+        }
     }
 }

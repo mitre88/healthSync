@@ -1,7 +1,11 @@
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
+    @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var medicationStore: MedicationStore
     @State private var selectedTab = 0
+    @State private var hasConfiguredModelContext = false
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -41,6 +45,11 @@ struct ContentView: View {
                 .tag(4)
         }
         .tint(.teal)
+        .task {
+            guard !hasConfiguredModelContext else { return }
+            medicationStore.setModelContext(modelContext)
+            hasConfiguredModelContext = true
+        }
     }
 }
 

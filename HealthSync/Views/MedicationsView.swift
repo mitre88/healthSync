@@ -230,9 +230,14 @@ struct AddMedicationView: View {
         
         medicationStore.addMedication(medication)
         
+        let notificationsEnabled = medicationStore.userProfile?.notificationsEnabled ?? true
+        
         Task {
-            if await notificationService.requestAuthorization() {
-                await notificationService.scheduleMedicationReminder(for: medication)
+            if notificationsEnabled, await notificationService.requestAuthorization() {
+                await notificationService.scheduleMedicationReminder(
+                    for: medication,
+                    reminderMinutesBefore: medicationStore.userProfile?.reminderMinutesBefore ?? 0
+                )
             }
         }
         
@@ -297,7 +302,12 @@ struct MedicationDetailView: View {
                         
                         Task {
                             if newValue {
-                                await notificationService.scheduleMedicationReminder(for: medication)
+                                if medicationStore.userProfile?.notificationsEnabled ?? true {
+                                    await notificationService.scheduleMedicationReminder(
+                                        for: medication,
+                                        reminderMinutesBefore: medicationStore.userProfile?.reminderMinutesBefore ?? 0
+                                    )
+                                }
                             } else {
                                 await notificationService.cancelMedicationReminders(for: medication)
                             }

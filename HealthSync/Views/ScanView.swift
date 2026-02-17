@@ -1,6 +1,4 @@
 import SwiftUI
-import Vision
-import VisionKit
 
 struct ScanView: View {
     @EnvironmentObject private var medicationStore: MedicationStore
@@ -69,6 +67,19 @@ struct ScanView: View {
                 }
             } message: {
                 Text("Los medicamentos se han añadido correctamente")
+            }
+            .alert(
+                "No se pudo analizar la receta",
+                isPresented: Binding(
+                    get: { errorMessage != nil },
+                    set: { show in
+                        if !show { errorMessage = nil }
+                    }
+                )
+            ) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage ?? "Intenta con una imagen mas clara.")
             }
         }
     }
@@ -178,6 +189,25 @@ struct ScanView: View {
                         .clipShape(Capsule())
                 }
                 
+                HStack(spacing: 8) {
+                    Image(systemName: result.extractionSource == .appleIntelligence ? "sparkles" : "text.viewfinder")
+                        .foregroundStyle(result.extractionSource == .appleIntelligence ? .indigo : .orange)
+                    Text(result.extractionSource.displayName)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(result.extractionSource == .appleIntelligence ? .indigo : .orange)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background((result.extractionSource == .appleIntelligence ? Color.indigo : Color.orange).opacity(0.12))
+                .clipShape(Capsule())
+                
+                if result.extractionSource == .heuristic {
+                    Text("Apple Intelligence no esta disponible en este momento. Se uso analisis local.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
                 if let doctor = result.doctorName, !doctor.isEmpty {
                     HStack {
                         Image(systemName: "person.fill")
@@ -215,8 +245,14 @@ struct ScanView: View {
                 Text("Medicamentos Detectados")
                     .font(.headline)
                 
-                ForEach(result.medications) { med in
-                    ExtractedMedicationCard(medication: med)
+                if result.medications.isEmpty {
+                    Text("No se detectaron medicamentos validos. Prueba con otra foto.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(result.medications) { med in
+                        ExtractedMedicationCard(medication: med)
+                    }
                 }
             }
             .padding()
@@ -234,6 +270,8 @@ struct ScanView: View {
                     .background(.teal)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
+            .disabled(result.medications.isEmpty)
+            .opacity(result.medications.isEmpty ? 0.5 : 1)
             
             Button {
                 selectedImage = nil
@@ -246,10 +284,11 @@ struct ScanView: View {
         }
     }
     
+    @MainActor
     private func analyzeImage(_ image: UIImage) async {
         isAnalyzing = true
         
-        if await !notificationService.isAuthorized {
+        if !notificationService.isAuthorized {
             _ = await notificationService.requestAuthorization()
         }
         
@@ -264,8 +303,10 @@ struct ScanView: View {
         }
     }
     
+    @MainActor
     private func saveMedications(from result: ScanResult) {
         let calendar = Calendar.current
+        let notificationsEnabled = medicationStore.userProfile?.notificationsEnabled ?? true
         
         for extractedMed in result.medications {
             var times: [Date] = []
@@ -312,7 +353,11 @@ struct ScanView: View {
             medicationStore.addMedication(medication)
             
             Task {
-                await notificationService.scheduleMedicationReminder(for: medication)
+                guard notificationsEnabled else { return }
+                await notificationService.scheduleMedicationReminder(
+                    for: medication,
+                    reminderMinutesBefore: medicationStore.userProfile?.reminderMinutesBefore ?? 0
+                )
             }
         }
         
